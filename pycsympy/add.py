@@ -42,3 +42,14 @@ def add(*args):
     for arg in it:
         result += arg
     return result.canonicalize()
+
+class Monomial(Basic):
+    def __init__(self, dct):
+        self._dict = dct
+
+def power(base, expt):
+    if expt == 0:
+        return 1
+    elif expt == 1:
+        return base
+    return Monomial({base: expt})
