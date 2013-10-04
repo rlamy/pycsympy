@@ -1,4 +1,5 @@
 from pycsympy.basic import Basic
+from pycsympy.multinomial import multinomial_coefficients
 
 class Add(Basic):
     def __init__(self, term, _dict):
@@ -24,6 +25,12 @@ class Add(Basic):
             self._dict[key] += value
         return self
 
+    def __str__(self):
+        parts = [str(self.numberterm)]
+        parts += ['%s*%s' % (c, x) for x, c in self._dict.iteritems()]
+        return ' + '.join(parts)
+    __repr__ = __str__
+
     def canonicalize(self):
         if not self._dict:
             return self.numberterm
@@ -32,6 +39,10 @@ class Add(Basic):
             if self._dict[value] == 1:
                 return value
         return self
+
+    def terms(self):
+        parts = [self.numberterm] if self.numberterm else []
+        return parts + list(self._dict)
 
 
 def add(*args):
@@ -46,6 +57,36 @@ def add(*args):
 class Monomial(Basic):
     def __init__(self, dct):
         self._dict = dct
+
+    def __eq__(self, other):
+        if not isinstance(other, Monomial):
+            return False
+        return self._dict == other._dict
+
+    def __str__(self):
+        return ' * '.join(['%s**%s' % (b, e) for b, e in self._dict.iteritems()])
+
+    def expand(self):
+        if len(self._dict) == 1:
+            (base, expt), = self._dict.iteritems()
+            terms = base.terms()
+            expansion_dict = multinomial_coefficients(len(terms), expt)
+            return expr_from_dict(expansion_dict, terms)
+        else:
+            return self
+
+
+
+def expr_from_dict(rep, gens):
+    """Convert a multinomial form into an expression. """
+    dct = {}
+    for monom, coeff in rep.iteritems():
+        term = {}
+        for x, n in zip(gens, monom):
+            if n > 0:
+                term[x] = n
+        dct[Monomial(term)] = coeff
+    return Add(0, dct)
 
 def power(base, expt):
     if expt == 0:

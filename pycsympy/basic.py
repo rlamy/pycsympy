@@ -17,4 +17,8 @@ class Symbol(Basic):
     def __init__(self, name):
         self.name = name
 
+    def __str__(self):
+        return self.name
+    __repr__ = __str__
+
 from pycsympy.add import Add, add, power
