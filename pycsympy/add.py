@@ -41,8 +41,10 @@ class Add(Basic):
         return self
 
     def terms(self):
-        parts = [self.numberterm] if self.numberterm else []
-        return parts + list(self._dict)
+        res = self._dict.copy()
+        if self.numberterm:
+            res[1] = self.numberterm
+        return res
 
 
 def add(*args):
@@ -62,6 +64,9 @@ class Monomial(Basic):
         if not isinstance(other, Monomial):
             return False
         return self._dict == other._dict
+
+    def __hash__(self):
+        return hash(tuple(self._dict.items()))
 
     def __str__(self):
         return ' * '.join(['%s**%s' % (b, e) for b, e in self._dict.iteritems()])
@@ -85,6 +90,7 @@ def expr_from_dict(rep, gens):
         for x, n in zip(gens, monom):
             if n > 0:
                 term[x] = n
+                coeff *= gens[x]**n
         dct[Monomial(term)] = coeff
     return Add(0, dct)
 
